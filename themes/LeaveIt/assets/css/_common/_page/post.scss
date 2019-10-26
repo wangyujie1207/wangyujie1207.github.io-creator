@@ -102,7 +102,7 @@
 
             .dark-theme &:not([class]) {
                 background: transparent;
-                box-shadow: 1px 1px 0 $dark-font-secondary-color, 2px 2px 0 $dark-font-secondary-color;
+                // box-shadow: 1px 1px 0 $dark-font-secondary-color, 2px 2px 0 $dark-font-secondary-color;
             }
         }
 

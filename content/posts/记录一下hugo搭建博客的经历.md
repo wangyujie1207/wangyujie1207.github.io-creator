@@ -1,7 +1,7 @@
 ---
 title: "记录一下hugo搭建博客的经历"
 date: 2019-10-26T11:03:42+08:00
-tags: ["go", "golang", "templates", "themes", "development"]
+tags: ["go", "hugo"]
 categories: ["日常"]
 draft: false
 ---

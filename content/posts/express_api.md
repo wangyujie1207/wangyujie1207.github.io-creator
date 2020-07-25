@@ -1,10 +1,26 @@
 ---
 title: "express_api"
-date: 2019-10-29T13:53:28+08:00
+date: 2020-7-25T22:53:28+08:00
 tags: ["nodejs", "express"]
 categories: ["js"]
 ---
 ## Express API 总结
+#### 先来个基本操作
+```js
+const express = require('express');
+let app = express();
+
+app.get('/', function(req, res) {
+  res.send('hello world');
+});
+
+let server = app.listen(3000, function() {
+  let host = server.address().address;
+  let port = server.address().port;
+
+  console.log(`app listening at port: ${port}`);
+});
+```
 ### express.xxx - 内置中间件
 #### json([option])
 内置中间件,解析传入的请求
@@ -28,6 +44,45 @@ app.use((request, response, next) => {
 对应的路由进行响应
 
 ### router.xxx - 操作路由
+```js
+var app = express();
+var router = express.Router();
+
+//  没有挂载路径的中间件，通过该路由的每个请求都会执行该中间件
+router.use(function(req, res, next) {
+  console.log('Time:', Date.now());
+  next();
+});
+
+//  一个中间件栈，显示任何指向/user/:id的HTTP请求信息
+router.use('/user/:id', function(req, res, next) {
+  console.log('Request URL:', req.originUrl);
+  next();
+}, function(req, res, next) {
+  console.log('Request Type:', req.method);
+  next();
+});
+
+//  一个中间件栈，处理指向/user/:id的GET请求
+router.get('/user/:id', function(req, res, next) {
+  //  如果user id为0，跳到下一个路由
+  if(req.params.id == 0)  next('route');
+  //  负责将控制权交给栈中下一个中间件
+  else next();
+}, function(req, res, next) {
+  //  渲染常规页面
+  res.render('regular');
+});
+
+//  处理/user/:id，渲染一个特殊页面
+router.get('/user/:id', function(req, res, next) {
+  console.log(req.params.id);
+  res.render('special');
+});
+
+//  将路由挂载至应用
+app.use('/', router);
+```
 #### router.all(path, [callback, ... ] callback)
 与 methods 相同，适配所有的方法
 #### router.methods(path, fn)
@@ -35,45 +90,21 @@ get/post/put/delete/update 对应的请求方法进行响应
 #### router.param(name, callback)
 构造一个参数触发器，根据参数出发回调
 即使参数在多个路由中匹配，在请求-响应周期中也仅会调用一次参数回调
-```js
-router.param('id', function (req, res, next, id) {
-  console.log('CALLED ONLY ONCE')
-  next()
-})
-
-router.get('/user/:id', function (req, res, next) {
-  console.log('although this matches')
-  next()
-})
-
-router.get('/user/:id', function (req, res) {
-  console.log('and this matches too')
-  res.end()
-})
-/*print
-CALLED ONLY ONCE
-although this matches
-and this matches too
-*/
-```
 #### router.use([path], [function], funtion)
 中间件的使用或者对路由的响应
 #### router.route(path)
 返回单个路由的实例，然后您可以使用该路由使用可选的中间件来处理HTTP动词。使用router.route()以避免重复请求的响应
+
+### 错误处理
 ```js
-router.route('/users/:user_id')
-  .all(function (req, res, next) {
-    // runs for all HTTP verbs first
-    // think of it as route specific middleware!
-    next()
-  })
-  .get(function (req, res, next) {
-    res.json(req.user)
-  })
-  .post(function (req, res, next) {
-    next(new Error('not implemented'))
-  })
-  .delete(function (req, res, next) {
-    next(new Error('not implemented'))
-  })
+var bodyParser = require('body-Parser');
+var methodOverride = require('method-override');
+
+app.use(bodyParser());
+app.use(methodOverride());
+app.use(function(err, req, res, next) {
+  //  业务逻辑
+  console.error(err.stack);
+  res.status(500).send('Something broke!');
+});
 ```
